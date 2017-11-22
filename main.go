@@ -61,18 +61,18 @@ func fetchToken() string {
 	// first try to use the argument as a file name
 	token, err := readTokenFile(arg)
 	if err != nil {
-		if err == os.ErrNotExist {
+		if os.IsNotExist(err) {
 			log.Println("token given as positional argument")
-			return token
+			return arg // return arg as token
 		}
+		log.Fatalf("couldn't read token file %s: %v", arg, err)
 	}
 
-	log.Println("token read from token file " + arg)
 	return token
 }
 
 func readTokenFile(path string) (string, error) {
-	tokenFile, err := os.Open(path)
+	tokenFile, err := os.OpenFile(path, os.O_RDONLY, 0400)
 	if err != nil {
 		return "", err
 	}
@@ -83,5 +83,7 @@ func readTokenFile(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("couldn't read token (first line) in token file %s: %v", path, err)
 	}
+
+	log.Println("token read from token file " + path)
 	return token, nil
 }
